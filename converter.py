@@ -16,10 +16,14 @@ class Converter(metaclass=abc.ABCMeta):
 
 class PDFConverter(Converter):
     def convert(self, pdf_path, save_path, pages, img_type):
-        images = convert_from_path(pdf_path)
+        try:
+            for page in pages:
+                image = convert_from_path(pdf_path, first_page=page+1, last_page=page+1)
+                image[0].save("{}/{}_{}.{}".format(save_path, os.path.split(pdf_path)[1].split('.')[0], page+1, img_type))
 
-        for page in pages:
-            images[page].save("{}/{}_{}.{}".format(save_path, os.path.split(pdf_path)[1].split('.')[0], page+1, img_type))
+            return True
+        except:
+            return False
 
 
 class IMGConverter(Converter):
