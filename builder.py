@@ -32,8 +32,6 @@ class Builder(metaclass=abc.ABCMeta):
         self.filenames = ''
         self.filenames_tkVar = tk.StringVar()
         self.list_label_tkVar = tk.StringVar()
-        self.saved_filename_inputbox_label = None
-        self.saved_filename_inputbox = None
 
     @abc.abstractmethod
     def select_file(self):
@@ -75,6 +73,7 @@ class Builder(metaclass=abc.ABCMeta):
     def if_file_selected(self):
         if self.filenames == '':
             showinfo(title='Error', message='No file selected!')
+            self.refresh_session()
             return False
         else:
             self.show_filename()
@@ -108,6 +107,12 @@ class Builder(metaclass=abc.ABCMeta):
         else:
             showinfo(title='Error', message='Convert Failed!')
 
+    def refresh_session(self):
+        for widget in self.frame2.winfo_children():
+            widget.pack_forget()
+        for widget in self.frame3.winfo_children():
+            widget.pack_forget()
+
 
 class PDFBuilder(Builder):
     def select_file(self):
@@ -132,7 +137,7 @@ class PDFBuilder(Builder):
 
     def build_selecting_components(self):
         self.build_list_label()
-        self.list_label_tkVar.set('Pages:')
+        self.list_label_tkVar.set('Pages select:')
 
         if self.list is None:
             self.list = tk.Listbox(self.frame2, selectmode='multiple', font=16)
@@ -160,6 +165,12 @@ class PDFBuilder(Builder):
 
 
 class IMGBuilder(Builder):
+    def __init__(self, window):
+        super().__init__(window)
+        self.saved_filename_inputbox_label = None
+        self.saved_filename_inputbox = None
+        self.default_saved_filename = tk.StringVar()
+
     def select_file(self):
         filetypes = (
             ('img files', '*.jpg *.png'),
@@ -172,10 +183,10 @@ class IMGBuilder(Builder):
             filetypes=filetypes)
 
         if self.if_file_selected():
+            self.build_saved_filename_inputbox()
             self.build_selecting_components()
 
             self.update_list()
-            self.build_saved_filename_inputbox()
 
     def build_selecting_components(self):
         self.build_list_label()
@@ -202,10 +213,116 @@ class IMGBuilder(Builder):
 
     def build_saved_filename_inputbox(self):
         if self.saved_filename_inputbox_label is None:
-            self.saved_filename_inputbox_label = tk.Label(self.frame2, text='saved filename:')
+            self.saved_filename_inputbox_label = tk.Label(self.frame3, text='saved filename:')
         self.saved_filename_inputbox_label.pack(expand=True)
 
         if self.saved_filename_inputbox is None:
-            self.saved_filename_inputbox = tk.Entry(self.frame2)
+            self.saved_filename_inputbox = tk.Entry(self.frame3)
             self.saved_filename_inputbox.insert(0, 'IMGs')
         self.saved_filename_inputbox.pack(expand=True)
+
+
+class CombinerBuilder(IMGBuilder):
+    def __init__(self, window):
+        super().__init__(window)
+        self.insert_pages_menu = None
+        self.insert_page = tk.StringVar()
+        self.insert_pages_menu_label = None
+        self.insert_checkbox = None
+        self.insert_is_check = tk.BooleanVar()
+
+    def select_file(self):
+        filetypes = (
+            ('img files', '*.pdf'),
+            ('All files', '*.*')
+        )
+
+        self.filenames = fd.askopenfilenames(
+            title='Select multiple PDF files',
+            initialdir='./',
+            filetypes=filetypes)
+
+        if self.if_file_selected():
+            self.build_saved_filename_inputbox()
+            self.saved_filename_inputbox.delete(0, tk.END)
+            self.saved_filename_inputbox.insert(0, 'Combined')
+
+            self.build_selecting_components()
+            self.list_label_tkVar.set('PDF files arrange:')
+
+            if len(self.filenames) == 2:
+                self.build_insert_checkbox()
+            else:
+                self.hide_insert_checkbox()
+                self.hide_insert_pages_menu()
+
+            self.update_list()
+
+    def if_file_selected(self):
+        if len(self.filenames) < 2:
+            showinfo(title='Error', message='Please select at least 2 PDF files!')
+            self.refresh_session()
+            return False
+        else:
+            self.show_filename()
+            return True
+
+    def convert(self):
+        converter = PDFCombiner()
+        if len(self.filenames) == 2 and self.insert_is_check.get():
+            success = converter.convert(self.filenames, self.save_path, self.list.get(0, tk.END),
+                          self.saved_filename_inputbox.get(), int(self.insert_page.get()))
+        else:
+            success = converter.convert(self.filenames, self.save_path, self.list.get(0, tk.END),
+                                        self.saved_filename_inputbox.get())
+
+        self.check_converted(success)
+
+    def get_first_PDF_total_pages(self):
+        first_pdf_file = self.list.get(0)
+        if first_pdf_file in self.filenames[0]:
+            first_pdf_file = self.filenames[0]
+        else:
+            first_pdf_file = self.filenames[1]
+
+        pdf_file = pdfplumber.open(first_pdf_file)
+        total_pages = len(pdf_file.pages)
+        return total_pages
+
+    def build_insert_checkbox(self):
+        if self.insert_checkbox is None:
+            self.insert_checkbox = tk.Checkbutton(self.frame2, text='Insert before page:', variable=self.insert_is_check,
+                                                  onvalue=1, offvalue=0, command=self.check_insert)
+        self.insert_checkbox.pack(expand=True)
+
+    def check_insert(self):
+        if self.insert_is_check.get():
+            self.build_insert_pages_menu()
+            self.list.bind('<Leave>', self.update_insert_pages_menu)
+        else:
+            self.hide_insert_pages_menu()
+
+    def build_insert_pages_menu(self):
+        total_pages = self.get_first_PDF_total_pages()
+        pages = [i for i in range(1, total_pages+1)]
+        if self.insert_pages_menu is None:
+            self.insert_pages_menu = tk.OptionMenu(self.frame2, self.insert_page, *pages)
+            self.insert_page.set(pages[0])
+        self.insert_pages_menu.pack(expand=True)
+
+    def update_insert_pages_menu(self, *args):
+        total_pages = self.get_first_PDF_total_pages()
+        pages = [i for i in range(1, total_pages + 1)]
+
+        self.insert_pages_menu['menu'].delete(0, tk.END)
+
+        for page in pages:
+            self.insert_pages_menu['menu'].add_command(label=page, command=tk._setit(self.insert_page, page))
+
+    def hide_insert_pages_menu(self):
+        if self.insert_pages_menu is not None:
+            self.insert_pages_menu.pack_forget()
+
+    def hide_insert_checkbox(self):
+        if self.insert_checkbox is not None:
+            self.insert_checkbox.pack_forget()

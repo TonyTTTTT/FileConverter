@@ -2,6 +2,7 @@ import abc
 import os.path
 from pdf2image import convert_from_path
 import img2pdf
+from pypdf import PdfMerger
 
 
 class Converter(metaclass=abc.ABCMeta):
@@ -28,11 +29,11 @@ class PDFConverter(Converter):
 
 
 class IMGConverter(Converter):
-    def convert(self, images_path, save_path, filename_ordered, saved_filename):
+    def convert(self, images_path, save_path, ordered_filename, saved_filename):
         try:
             f_imgs = []
             with open('{}/{}.pdf'.format(save_path, saved_filename), 'wb') as f_pdf:
-                for filename in filename_ordered:
+                for filename in ordered_filename:
                     for image_path in images_path:
                         if image_path.__contains__(filename):
                             f_img = open(image_path, 'rb')
@@ -45,11 +46,46 @@ class IMGConverter(Converter):
             return False
 
 
+class PDFCombiner(Converter):
+    def convert(self, pdfs_path, save_path, ordered_filename, saved_filename, *args):
+        try:
+            merger = PdfMerger()
+            for pdf_path in pdfs_path:
+                if ordered_filename[0] in pdf_path:
+                    merger.append(pdf_path)
+                    break
+
+            if len(args) != 0:
+                insert_page = args[0] - 1
+                for pdf_path in pdfs_path:
+                    if ordered_filename[1] in pdf_path:
+                        merger.merge(insert_page, pdf_path)
+                        break
+            else:
+                for i in range(1, len(ordered_filename)):
+                    for pdf_path in pdfs_path:
+                        if ordered_filename[i] in pdf_path:
+                            merger.append(pdf_path)
+                            break
+
+            merger.write(os.path.join(save_path, '{}.pdf'.format(saved_filename)))
+            merger.close()
+
+            return True
+        except:
+            return False
+
+
 if __name__ == '__main__':
     pdf_converter = PDFConverter()
     pdf_converter.convert(r'C:\Users\TonyTTTTT\Desktop\Guitar Sheet\i really want to stay at your house TAB.pdf'
                           , r'./result', [0, 2], 'png')
 
     img_converter = IMGConverter()
-    img_converter.convert(r'C:\Users\TonyTTTTT\Pictures\下載.jfif', r'./result')
+    img_converter.convert([r'C:\Users\TonyTTTTT\Pictures\下載.jfif'], r'./result', ['下載.jfif'], 'test')
 
+    pdf_combiner = PDFCombiner()
+    pdf_combiner.convert(['i really want to stay at your house TAB.pdf', 'passport.pdf'], r'./result',
+                         ['i really want to stay at your house TAB.pdf', 'passport.pdf'], 'combined')
+    pdf_combiner.convert(['i really want to stay at your house TAB.pdf', 'passport.pdf'], r'./result',
+                         ['i really want to stay at your house TAB.pdf', 'passport.pdf'], 'combined_insert', 2)

@@ -19,7 +19,7 @@ class GUI:
         self.frame3 = tk.Frame(self.window)
         self.frame3.pack(fill='none', expand=True, ipadx=10, ipady=20, padx=20, pady=20)
 
-        self.use_cases = ['pdf2img', 'img2pdf']
+        self.use_cases = ['pdf2img', 'img2pdf', 'combine PDF']
         self.use_case_menu = tk.OptionMenu(self.frame1, self.use_case, *self.use_cases, command=self.refresh_session)
         self.use_case_menu.pack(expand=True)
         self.use_case.set(self.use_cases[0])
@@ -27,7 +27,7 @@ class GUI:
 
         self.select_file_button = tk.Button(
             self.frame1,
-            text='Select a File',
+            text='Select Files',
             command=self.builder.select_file
         )
         self.select_file_button.pack(expand=True)
@@ -44,6 +44,8 @@ class GUI:
             self.builder = PDFBuilder(self.window)
         elif self.use_case.get() == self.use_cases[1]:
             self.builder = IMGBuilder(self.window)
+        elif self.use_case.get() == self.use_cases[2]:
+            self.builder = CombinerBuilder(self.window)
 
         self.select_file_button.configure(command=self.builder.select_file)
 
