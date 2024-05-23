@@ -1,0 +1,5 @@
+- appium must be v1.19.1
+  - npm install -g appium@1.19.1
+- path wd/hub must be attach after appium server IP
+  - http://127.0.0.1:4723/wd/hub
+- For this version of appium, capability data type is dict. While in the newer version, it have to use load_capability() to convert to appium's custom data type.
