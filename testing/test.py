@@ -31,13 +31,15 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+import os.path
+from pathlib import Path
 
 
 class SimpleCalculatorTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # set up appium
-        desired_caps = {"app": "C:\\Users\\TonyTTTTT\\Desktop\\side-project\\FileConverter\\testing\\dist\\gui\\gui.exe",
+        desired_caps = {"app": os.getcwd()+"\\dist\\gui\\gui.exe",
                         "platformName": "Windows",
                         "deviceName": "WindowsPC",
                         "newCommandTimeout": 10000}
@@ -59,7 +61,7 @@ class SimpleCalculatorTests(unittest.TestCase):
         # WebDriverWait(self.driver, 10000).until(EC.element_to_be_clickable(By.XPATH, "//ProgressBar/Pane/ToolBar"))
         actions = ActionChains(self.driver)
         actions.click(self.driver.find_element_by_xpath("//ProgressBar/Pane/ToolBar"))\
-            .send_keys("C:/Users/TonyTTTTT/Desktop/side-project/FileConverter"+Keys.ENTER).perform()
+            .send_keys(Path.cwd().parent.absolute().__str__() + Keys.ENTER).perform()
 
         actions.reset_actions()
         actions.click(self.driver.find_element_by_xpath("/Window/Window/ComboBox[1]/Edit")).send_keys("TAB.pdf").perform()
