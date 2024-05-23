@@ -4,3 +4,8 @@
 *.jpg
 
 __pycache__
+
+# Pyinstaller artifact
+*build/
+*dist/
+*.spec

@@ -6,7 +6,7 @@ class GUI:
     def __init__(self):
         self.window = tk.Tk()
         self.window.title("Converter")
-        # self.window.geometry("300x200")
+        self.window.geometry("500x1000")
 
         self.use_case = tk.StringVar()
 
@@ -28,7 +28,7 @@ class GUI:
         self.select_file_button = tk.Button(
             self.frame1,
             text='Select Files',
-            command=self.builder.select_file
+            command=self.builder.select_file,
         )
         self.select_file_button.pack(expand=True)
 
