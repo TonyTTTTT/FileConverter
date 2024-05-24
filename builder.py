@@ -129,8 +129,8 @@ class PDFBuilder(Builder):
         if self.if_file_selected():
             self.build_selecting_components()
 
-            pdf_file = pdfplumber.open(self.filenames)
-            total_pages = len(pdf_file.pages)
+            with pdfplumber.open(self.filenames) as pdf_file:
+                total_pages = len(pdf_file.pages)
 
             self.update_list(total_pages)
             self.build_img_type_menu()
@@ -285,8 +285,9 @@ class CombinerBuilder(IMGBuilder):
         else:
             first_pdf_file = self.filenames[1]
 
-        pdf_file = pdfplumber.open(first_pdf_file)
-        total_pages = len(pdf_file.pages)
+        with pdfplumber.open(first_pdf_file) as pdf_file:
+            total_pages = len(pdf_file.pages)
+
         return total_pages
 
     def build_insert_checkbox(self):
