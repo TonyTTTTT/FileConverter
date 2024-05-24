@@ -15,8 +15,15 @@ import time
 class SimpleCalculatorTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
+        PyInstaller.__main__.run([
+            '../gui.py',
+            '-y',
+            '--distpath=executable',
+            '--workpath=executable/build'
+            '--clean'
+        ])
         # set up appium
-        desired_caps = {"app": os.getcwd()+"\\dist\\gui\\gui.exe",
+        desired_caps = {"app": os.path.join(os.getcwd(), "executable/gui/gui.exe"),
                         "platformName": "Windows",
                         "deviceName": "WindowsPC",
                         "newCommandTimeout": 10000}
@@ -36,9 +43,6 @@ class SimpleCalculatorTests(unittest.TestCase):
         self.select_file(actions, '"img1.jpg""img2.jpg""img3.jpg"')
 
         actions.reset_actions()
-        actions.click(self.driver.find_element_by_xpath("/Window/Window/Button[1]")).perform()
-
-        actions.reset_actions()
         WebDriverWait(self.driver, 100).until(EC.element_to_be_clickable((By.XPATH, "/Window/Pane/Pane[2]/Pane")))
         actions.drag_and_drop_by_offset(self.driver.find_element_by_xpath("/Window/Pane/Pane[2]/Pane"), 0, -100).perform()
 
@@ -51,7 +55,7 @@ class SimpleCalculatorTests(unittest.TestCase):
 
         self.select_usecase(actions, 30)
 
-        self.select_file(actions, "ForTesting.pdf")
+        self.select_file(actions, "PDF1.pdf")
 
         actions.reset_actions()
         WebDriverWait(self.driver, 100).until(EC.element_to_be_clickable((By.XPATH, "/Window/Pane/Pane[2]/Pane[2]")))
@@ -65,9 +69,27 @@ class SimpleCalculatorTests(unittest.TestCase):
     def test_combinePDF(self):
         actions = ActionChains(self.driver)
 
-        self.select_usecase(actions, 50)
+        self.select_usecase(actions, 60)
 
-        self.select_file(actions, '"')
+        self.select_file(actions, '"PDF1.pdf""PDF2.pdf"')
+
+        actions.reset_actions()
+        WebDriverWait(self.driver, 100).until(EC.element_to_be_clickable((By.XPATH, "/Window/Pane/Pane[2]/Pane")))
+        actions.drag_and_drop_by_offset(self.driver.find_element_by_xpath("/Window/Pane/Pane[2]/Pane"), 0, -100).perform()
+
+        actions.reset_actions()
+        actions.click(self.driver.find_element_by_xpath(("/Window/Pane/Pane[2]/Button"))).perform()
+
+        actions.reset_actions()
+        WebDriverWait(self.driver, 100).until(EC.element_to_be_clickable((By.XPATH, "/Window/Pane/Pane[2]/Pane[1]")))
+        actions.click(self.driver.find_element_by_xpath("/Window/Pane/Pane[2]/Pane[1]")).perform()
+
+        actions.reset_actions()
+        actions.move_by_offset(0, -20).click().perform()
+
+        self.save_file(actions)
+
+        time.sleep(2)
 
     def select_file(self, actions, file_name):
         actions.reset_actions()
@@ -111,11 +133,5 @@ class SimpleCalculatorTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # PyInstaller.__main__.run([
-    #     '../gui.py',
-    #     '-y',
-    #     '--clean'
-    # ])
-
     suite = unittest.TestLoader().loadTestsFromTestCase(SimpleCalculatorTests)
     unittest.TextTestRunner(verbosity=2).run(suite)
