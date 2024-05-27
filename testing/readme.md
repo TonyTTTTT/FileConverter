@@ -9,7 +9,7 @@
   - npm install appium-windows-driver
 - path "wd/hub" must be attached after appium server IP when initializing webdriver
   - e.g. http://127.0.0.1:4723/wd/hub
-  - ![img.png](path example.png)
+  - ![img.png](path_example.png)
 
 ## Step
 1. Run Appium server
