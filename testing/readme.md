@@ -31,6 +31,7 @@
     - In the other words, you can't use "Capability Builder" to create a session, you need to use "Attach to Session..." instead 
     - ![img.png](Appium_Inspector.png)
 - Once you locate the element, you can use the action provide by selenium to reach it.
+  - In my code, I use xpath to locate the element, which is not preferable, instead, if elemant name or automationID exist, you should use those.  
 
 ## Notice
 - For this version of appium, capability data type is dict. While in the newer version, it have to use load_capability() to convert to appium's custom data type.
