@@ -25,5 +25,12 @@
 2. Run Appium server
 3. Execute your testing script
 
+## Writing testing script
+- You can locate the element in the app you want to test through [Appium Inspector](https://github.com/appium/appium-inspector/releases)
+  - Since Appium Inspector use new version of Appium client library, your capability spec will be wrap into appium custom data type, which is not acceptable in appium version == v1.19.1, so you need to first create a session to your appium server and attach to that session.
+    - In the other words, you can't use "Capability Builder" to create a session, you need to use "Attach to Session..." instead 
+    - ![img.png](Appium_Inspector.png)
+- Once you locate the element, you can use the action provide by selenium to reach it.
+
 ## Notice
 - For this version of appium, capability data type is dict. While in the newer version, it have to use load_capability() to convert to appium's custom data type.
