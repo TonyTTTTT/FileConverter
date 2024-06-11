@@ -10,15 +10,15 @@ from dragndrop_listbox import DragDropListbox
 class Builder(metaclass=abc.ABCMeta):
     @classmethod
     def __subclasshook__(cls, subclass):
-        return (hasattr(subclass, 'build') and
-                callable(subclass.build))
+        return (hasattr(subclass, 'select_file') and
+                callable(subclass.select_file))
 
     def __init__(self, window):
         self.window = window
         self.frame2 = self.window.winfo_children()[1]
         self.frame3 = self.window.winfo_children()[2]
 
-        self.page_num = None
+        self.total_pages: int = None
         self.save_path = None
         self.save_path_tkVar = tk.StringVar()
         self.img_type = tk.StringVar()
@@ -114,7 +114,7 @@ class Builder(metaclass=abc.ABCMeta):
             widget.pack_forget()
 
 
-class PDFBuilder(Builder):
+class PDF2IMGBuilder(Builder):
     def select_file(self):
         filetypes = (
             ('pdf files', '*.pdf'),
@@ -130,9 +130,9 @@ class PDFBuilder(Builder):
             self.build_selecting_components()
 
             with pdfplumber.open(self.filenames) as pdf_file:
-                total_pages = len(pdf_file.pages)
+                self.total_pages = len(pdf_file.pages)
 
-            self.update_list(total_pages)
+            self.update_list()
             self.build_img_type_menu()
 
     def build_selecting_components(self):
@@ -146,14 +146,14 @@ class PDFBuilder(Builder):
         self.build_set_save_path_btn()
 
     def convert(self):
-        converter = PDFConverter()
+        converter = PDF2IMGConverter()
         success = converter.convert(self.filenames, self.save_path, self.list.curselection(), self.img_type.get())
 
         self.check_converted(success)
 
-    def update_list(self, total_pages):
+    def update_list(self):
         self.list.delete(0, tk.END)
-        for i in range(1, total_pages + 1):
+        for i in range(1, self.total_pages + 1):
             self.list.insert(i, i)
 
     def build_img_type_menu(self):
@@ -164,7 +164,7 @@ class PDFBuilder(Builder):
         self.img_type_menu.pack(expand=True)
 
 
-class IMGBuilder(Builder):
+class IMG2PDFBuilder(Builder):
     def __init__(self, window):
         super().__init__(window)
         self.saved_filename_inputbox_label = None
@@ -199,7 +199,7 @@ class IMGBuilder(Builder):
         self.build_set_save_path_btn()
 
     def convert(self):
-        converter = IMGConverter()
+        converter = IMG2PDFConverter()
         success = converter.convert(self.filenames, self.save_path, self.list.get(0, tk.END),
                                     self.saved_filename_inputbox.get())
 
@@ -222,7 +222,7 @@ class IMGBuilder(Builder):
         self.saved_filename_inputbox.pack(expand=True)
 
 
-class CombinerBuilder(IMGBuilder):
+class PDFCombinerBuilder(IMG2PDFBuilder):
     def __init__(self, window):
         super().__init__(window)
         self.insert_pages_menu = None
@@ -260,7 +260,7 @@ class CombinerBuilder(IMGBuilder):
 
     def if_file_selected(self):
         if len(self.filenames) < 2:
-            showinfo(title='Error', message='Please select at least 2 PDF files!')
+            showinfo(title='Error', message='Please select exactly 2 PDF files!')
             self.refresh_session()
             return False
         else:
@@ -327,3 +327,73 @@ class CombinerBuilder(IMGBuilder):
     def hide_insert_checkbox(self):
         if self.insert_checkbox is not None:
             self.insert_checkbox.pack_forget()
+
+
+class PDFExtractorBuilder(Builder):
+    def __init__(self, window):
+        super().__init__(window)
+        self.start_page_menu = None
+        self.end_page_menu = None
+        self.start_page = tk.StringVar()
+        self.end_page = tk.StringVar()
+        self.start_page_label = None
+        self.end_page_label = None
+
+    def select_file(self):
+        filetypes = (
+            ('pdf files', '*.pdf'),
+            ('All files', '*.*')
+        )
+
+        self.filenames = fd.askopenfilename(
+            title='Select one pdf file',
+            initialdir='./',
+            filetypes=filetypes)
+
+        if self.if_file_selected():
+            with pdfplumber.open(self.filenames) as pdf_file:
+                self.total_pages = len(pdf_file.pages)
+
+            self.build_selecting_components()
+            self.build_end_page_menu()
+
+    def build_selecting_components(self):
+        pages = [i for i in range(1, self.total_pages+1)]
+
+        if self.start_page_menu is None:
+            self.start_page_label = tk.Label(self.frame2, text='from:')
+            self.start_page_label.pack(expand=True)
+            self.start_page_menu = tk.OptionMenu(self.frame2, self.start_page, *pages, command=self.build_end_page_menu)
+        else:
+            self.update_page_menu(self.start_page_menu, pages, self.start_page, command=self.build_end_page_menu)
+
+        self.start_page.set(pages[0])
+        self.start_page_menu.pack(expand=True)
+
+    def build_end_page_menu(self, *args):
+        pages = [i for i in range(int(self.start_page.get()), self.total_pages+1)]
+
+        if self.end_page_menu is None:
+            self.end_page_label = tk.Label(self.frame2, text='to:')
+            self.end_page_label.pack(expand=True)
+            self.end_page_menu = tk.OptionMenu(self.frame2, self.end_page, *pages)
+        else:
+            self.update_page_menu(self.end_page_menu, pages, self.end_page)
+
+        self.end_page.set(pages[0])
+        self.end_page_menu.pack(expand=True)
+
+    @staticmethod
+    def update_page_menu(page_menu, pages, page_var, **kwargs):
+        page_menu['menu'].delete(0, tk.END)
+
+        if 'command' in kwargs:
+            callback = kwargs['command']
+            for page in pages:
+                page_menu['menu'].add_command(label=page, command=tk._setit(page_var, page, callback))
+        else:
+            for page in pages:
+                page_menu['menu'].add_command(label=page, command=tk._setit(page_var, page))
+
+    def convert(self):
+        pass

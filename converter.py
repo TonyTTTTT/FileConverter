@@ -16,7 +16,7 @@ class Converter(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class PDFConverter(Converter):
+class PDF2IMGConverter(Converter):
     def convert(self, pdf_path, save_path, pages, img_type):
         try:
             for page in pages:
@@ -29,7 +29,7 @@ class PDFConverter(Converter):
             return False
 
 
-class IMGConverter(Converter):
+class IMG2PDFConverter(Converter):
     def convert(self, images_path, save_path, ordered_filename, saved_filename):
         try:
             f_imgs = []
@@ -78,11 +78,11 @@ class PDFCombiner(Converter):
 
 
 if __name__ == '__main__':
-    pdf_converter = PDFConverter()
+    pdf_converter = PDF2IMGConverter()
     pdf_converter.convert(r'C:\Users\TonyTTTTT\Desktop\Guitar Sheet\i really want to stay at your house TAB.pdf'
                           , r'./result', [0, 2], 'png')
 
-    img_converter = IMGConverter()
+    img_converter = IMG2PDFConverter()
     img_converter.convert([r'C:\Users\TonyTTTTT\Pictures\下載.jfif'], r'./result', ['下載.jfif'], 'test')
 
     pdf_combiner = PDFCombiner()
