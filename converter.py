@@ -2,7 +2,7 @@ import abc
 import os.path
 from pdf2image import convert_from_path
 import img2pdf
-from pypdf import PdfMerger
+from pypdf import PdfMerger, PdfReader, PdfWriter
 
 
 class Converter(metaclass=abc.ABCMeta):
@@ -77,7 +77,30 @@ class PDFCombiner(Converter):
             return False
 
 
+class PDFExtractor(Converter):
+    def convert(self, pdf_path, save_path, start, end):
+        try:
+            with open(pdf_path, 'rb') as f:
+                extractor = PdfReader(f)
+                writer = PdfWriter()
+                extractor.pages
+                for i in range(start-1, end):
+                    writer.add_page(extractor.get_page(i))
+
+                save_file_name = '{}_{}_{}.pdf'.format(os.path.split(pdf_path)[1].split('.')[0], start, end)
+                with open(os.path.join(save_path, save_file_name), 'wb') as saved_f:
+                    writer.write(saved_f)
+
+            return True
+        except:
+            return False
+
+
 if __name__ == '__main__':
+    pdf_extractor = PDFExtractor()
+    pdf_extractor.convert(r'C:\Users\TonyTTTTT\Desktop\Guitar Sheet\i really want to stay at your house TAB.pdf',
+                          r'./result', 2, 4)
+
     pdf_converter = PDF2IMGConverter()
     pdf_converter.convert(r'C:\Users\TonyTTTTT\Desktop\Guitar Sheet\i really want to stay at your house TAB.pdf'
                           , r'./result', [0, 2], 'png')

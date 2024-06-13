@@ -5,6 +5,8 @@
 
 __pycache__
 
+result
+
 # Pyinstaller artifact
 *build/
 *dist/

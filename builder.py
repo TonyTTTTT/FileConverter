@@ -356,6 +356,7 @@ class PDFExtractorBuilder(Builder):
 
             self.build_selecting_components()
             self.build_end_page_menu()
+            self.build_set_save_path_btn()
 
     def build_selecting_components(self):
         pages = [i for i in range(1, self.total_pages+1)]
@@ -396,4 +397,8 @@ class PDFExtractorBuilder(Builder):
                 page_menu['menu'].add_command(label=page, command=tk._setit(page_var, page))
 
     def convert(self):
-        pass
+        converter = PDFExtractor()
+
+        success = converter.convert(self.filenames, self.save_path, int(self.start_page.get()), int(self.end_page.get()))
+
+        self.check_converted(success)
