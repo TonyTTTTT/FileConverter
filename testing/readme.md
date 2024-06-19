@@ -32,7 +32,7 @@
     - You can run the code below(which is the same as line 25~32 in usecase_testing.py) to create a session to Appium server
       - ![img.png](create_session_code.png)
     - Then, press the reload bottom on Appium Inspector and you'll see a session, select it, and press **Attach to Session** 
-    - ![img.png](Appium_Inspector.png)
+      - ![img.png](Appium_Inspector.png)
 - Once you locate the element, you can use the action provide by selenium to reach it.
   - In my code, I use xpath to locate the element, which is not preferable, instead, if element name or automationID exist, you should use those.  
 
