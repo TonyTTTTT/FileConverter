@@ -12,7 +12,7 @@ import PyInstaller.__main__
 import time
 
 
-class SimpleCalculatorTests(unittest.TestCase):
+class UsecasesTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         PyInstaller.__main__.run([
@@ -91,6 +91,26 @@ class SimpleCalculatorTests(unittest.TestCase):
 
         time.sleep(2)
 
+    def test_extractPDF(self):
+        actions = ActionChains(self.driver)
+
+        self.select_usecase(actions, 80)
+
+        self.select_file(actions, '"PDF2.pdf"')
+
+        actions.reset_actions()
+        WebDriverWait(self.driver, 100).until(EC.element_to_be_clickable((By.XPATH, "/Window/Pane/Pane[2]/Pane[2]")))
+        actions.click(self.driver.find_element_by_xpath("/Window/Pane/Pane[2]/Pane[2]")).move_by_offset(0, 50).\
+            click().perform()
+
+        actions.reset_actions()
+        actions.click(self.driver.find_element_by_xpath("/Window/Pane/Pane[2]/Pane[1]")).move_by_offset(0, 150).\
+            click().perform()
+
+        self.save_file(actions)
+
+        time.sleep(2)
+
     def select_file(self, actions, file_name):
         actions.reset_actions()
         actions.click(self.driver.find_element_by_xpath("//ProgressBar/Pane/ToolBar")) \
@@ -133,5 +153,5 @@ class SimpleCalculatorTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(SimpleCalculatorTests)
+    suite = unittest.TestLoader().loadTestsFromTestCase(UsecasesTests)
     unittest.TextTestRunner(verbosity=2).run(suite)
