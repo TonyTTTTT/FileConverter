@@ -28,7 +28,10 @@
 ## Writing testing script
 - You can locate the element in the app you want to test through [Appium Inspector](https://github.com/appium/appium-inspector/releases)
   - Since Appium Inspector use new version of Appium client library, your capability spec will be wrap into appium custom data type, which is not acceptable in appium version == v1.19.1, so you need to first create a session to your appium server and attach to that session.
-    - In the other words, you can't use "Capability Builder" to create a session, you need to use "Attach to Session..." instead 
+    - In the other words, you can't use "Capability Builder" to create a session, you need to use "Attach to Session..." instead
+    - You can run the code below(which is the same as line 25~32 in usecase_testing.py) to create a session to Appium server
+      - ![img.png](create_session_code.png)
+    - Then, press the reload bottom on Appium Inspector and you'll see a session, select it, and press **Attach to Session** 
     - ![img.png](Appium_Inspector.png)
 - Once you locate the element, you can use the action provide by selenium to reach it.
   - In my code, I use xpath to locate the element, which is not preferable, instead, if element name or automationID exist, you should use those.  

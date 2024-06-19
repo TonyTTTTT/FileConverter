@@ -12,3 +12,5 @@ result
 *dist/
 *.spec
 *executable/
+
+venv
